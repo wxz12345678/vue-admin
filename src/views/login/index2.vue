@@ -35,8 +35,8 @@
 </template>
 
 <script>
-import { reactive,ref,onMounted } from '@vue/composition-api'
 import { stripscript,validateEmail,validatePass,validateCode } from "@/utils/validate.js"
+import { reactive,ref } from '@vue/composition-api'
 // vue中是数据驱动视图   js dom元素操作
 export default {
     name: "login",
@@ -46,22 +46,31 @@ export default {
     //             { tex:"登录",current:true,type:'login'},
     //             { tex:"注册",current:false,type:'register'},
     //         ]};
-    setup:(props,context)=>{
+    setup:()=>{
+       const menuTab = reactive([
+                { tex:"登录",current:true,type:'login'},
+                { tex:"注册",current:false,type:'register'},
+            ])
+      console.log(menuTab);
+      const model = ref('login');
+      console.log(model.value);
+    },
+    data: ()=>{
       //验证用户名
-      let validateUsername = (rule, value, callback) => {
+      var validateUsername = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('请输入用户名'));
         } else if(validateEmail(value)){
           callback(new Error('用户名格式有误！'));
         }else{
-          if (ruleForm.checkPass !== '') {
+          if (this.ruleForm.checkPass !== '') {
             this.$refs.ruleForm.validateField('checkPass');
           }
           callback();
         }
       };
       //密码验证
-      let validatePassword = (rule, value, callback) => {
+      var validatePassword = (rule, value, callback) => {
         console.log(this);
         //过滤掉多余字符
         // this.ruleForm.password = stripscript(value); 
@@ -77,7 +86,7 @@ export default {
         }
       };
       //验证重复密码
-       let validatePasswords = (rule, value, callback) => {
+       var validatePasswords = (rule, value, callback) => {
         console.log(this);
         //如果是login的话，直接让通过，不要验证
         // if(this.model === 'login'){
@@ -89,14 +98,14 @@ export default {
         value = stripscript(value);
         if (value === '') {
           callback(new Error('请再次输入密码'));
-        } else if (value != ruleForm.password) {
+        } else if (value != this.ruleForm.password) {
           callback(new Error('重复密码不正确'));
         } else {
           callback();
         }
       };
       //验证码验证
-       let checkCode = (rule, value, callback) => {
+       var checkCode = (rule, value, callback) => {
         if (value === '') {
           return callback(new Error('验证码不能为空'));
         }else if(validateCode(value)){
@@ -105,19 +114,20 @@ export default {
           callback();
         }
       };
-      //声明数据
-       const menuTab = reactive([
+        return {
+            menuTab:[
                 { tex:"登录",current:true,type:'login'},
                 { tex:"注册",current:false,type:'register'},
-            ])
-       const model = ref('login');
-       const ruleForm = reactive({
+            ],
+            //显示模块的值
+            model:"login",
+            ruleForm: {
                 username: '',
                 password: '',
                 code: '',
                 passwords: '',
-            });
-       const  rules = reactive({
+            },
+            rules: {
                 username: [
                     { validator: validateUsername, trigger: 'blur' }
                 ],
@@ -130,25 +140,25 @@ export default {
                 code: [
                     { validator: checkCode, trigger: 'blur' }
                 ]
-            }) 
-
-    // 生命周期函数
+            }
+      } 
+    },
     //挂载完成后自动执行的
-    const onMounted = ()=>{
+    mounted:()=>{
 
-    }
-    //声明函数
-    const toggleMenu = ((data)=>{
-            menuTab.forEach(element => {
+    },
+    methods:{
+        toggleMenu:function(data){
+            this.menuTab.forEach(element => {
                 element.current = false;
             });
             //高光
             data.current = true;
             //修改模块值
-            model.value = data.type;
-        })
-    const submitForm = ((formName)=> {
-        context.refs[formName].validate((valid) => {
+            this.model = data.type;
+        },
+        submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
           if (valid) {
             alert('submit!');
           } else {
@@ -156,23 +166,8 @@ export default {
             return false;
           }
         });
-      })
-
-      return {
-        menuTab,
-        model,
-        onMounted,
-        toggleMenu,
-        submitForm,
-        rules,
-        ruleForm,
-        // validateUsername,
-        // validatePassword,
-        // validatePasswords,
-        // checkCode
-      }
+      },
     },
-
 };
 </script>
 
